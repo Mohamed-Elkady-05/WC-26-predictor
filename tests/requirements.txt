@@ -1,0 +1,38 @@
+worldcup-2026-predictor/
+│
+├── data/
+│   ├── raw/                  # Unprocessed data as downloaded
+│   │   ├── fifa_rankings.csv
+│   │   └── match_history.csv
+│   ├── processed/            # Cleaned, feature-engineered data
+│   │   └── matches_features.csv
+│   └── tournament/           # 2026 bracket structure
+│       └── groups.json
+│
+├── notebooks/                # Exploratory work, one per phase
+│   ├── 01_eda.ipynb
+│   ├── 02_feature_engineering.ipynb
+│   └── 03_model_experiments.ipynb
+│
+├── src/                      # All importable Python modules
+│   ├── data/
+│   │   ├── fetch.py          # Scripts to pull/update data
+│   │   └── preprocess.py     # Cleaning & merging logic
+│   ├── features/
+│   │   └── build_features.py # Feature construction
+│   ├── models/
+│   │   ├── train.py          # Training pipeline
+│   │   ├── evaluate.py       # Metrics & validation
+│   │   └── predict.py        # Predict single match outcome
+│   └── simulation/
+│       ├── bracket.py        # Tournament bracket logic
+│       └── monte_carlo.py    # Run N simulations, rank teams
+│
+├── outputs/
+│   ├── models/               # Saved .pkl model files
+│   └── results/              # Simulation result CSVs / charts
+│
+├── tests/                    # Unit tests for key functions
+├── requirements.txt
+├── README.md
+└── main.py                   # Entry point: run full pipeline
