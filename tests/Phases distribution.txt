@@ -1,0 +1,50 @@
+The 5 Phases
+Phase 1 — Data Collection
+You need two core data sources:
+
+FIFA Rankings: The official point-based ranking for every national team. You can get historical snapshots from Kaggle's FIFA ranking dataset or scrape directly from the FIFA website.
+Match History: Every international match result ever recorded. The go-to source is the international football results dataset on Kaggle (regularly updated by the community).
+
+Your goal at the end of this phase: two clean CSVs sitting in data/raw/.
+
+Phase 2 — Feature Engineering
+This is the most important phase. Each row in your training data represents one match, and you need to construct features from the perspective of both teams at the time the match was played (no data leakage from the future).
+Key features to think about building:
+FeatureDescriptionhome_fifa_rank / away_fifa_rankRankings at match daterank_diffhome rank − away rankhome_fifa_points / away_fifa_pointsRaw points, not just rank positionh2h_win_rateTeam A's win % vs Team B in last N matchesh2h_goal_diffAverage goal difference in past meetingshome_recent_formWin rate in last 5/10 matchesaway_recent_formSame for opponentis_neutralWas the match on neutral ground?tournament_weightWeight: World Cup > Friendly
+Your target variable will be the match outcome: home_win, draw, away_win — so this is a 3-class classification problem.
+
+Phase 3 — Model Training
+You'll train an XGBoost classifier on historical matches. A few things to think through:
+
+Train/test split strategy: Don't split randomly — split by time (e.g., train on matches before 2020, test on 2020–2024). This respects the temporal nature of the data.
+Class imbalance: Draws are less common than wins — you may need to handle this with scale_pos_weight or class weighting.
+Output: You want probabilities for each outcome (win/draw/loss), not just a hard prediction. XGBoost's predict_proba gives you this.
+Evaluation metric: Think about using log-loss or Brier score rather than just accuracy, since you care about well-calibrated probabilities.
+
+
+Phase 4 — Tournament Simulation
+This is the fun part. You'll model the 2026 World Cup bracket (48 teams, 3 per group) and run a Monte Carlo simulation — simulate the whole tournament thousands of times (e.g., 10,000 runs) and count how often each team wins.
+The logic flow:
+
+Load the 2026 group assignments (FIFA announced these)
+For each match, call your model → get win/draw/loss probabilities
+Sample a result randomly weighted by those probabilities
+Advance winners through the bracket
+Repeat 10,000 times
+Output: each team's win probability = (times they won) / (total simulations)
+
+The key design challenge in bracket.py is correctly encoding knockout-round seeding rules, and handling draws (which go to extra time/penalties in the knockout stage — you'll need a separate probability for that).
+
+Phase 5 — Output & Visualization
+At the end, you want:
+
+A ranked table of all 48 teams by predicted win probability
+Win probability at each stage (group exit, Round of 32, QF, SF, Final, Champion)
+Optionally: a visual bracket using matplotlib or plotly
+
+
+Suggested Development Order
+Collect data → EDA notebook → Feature engineering → 
+Train & validate model → Build bracket logic → 
+Run Monte Carlo → Visualize results
+Start each phase in a notebook first, then move clean, tested logic into src/ as proper modules. That way you keep the exploratory freedom while building something maintainable.
